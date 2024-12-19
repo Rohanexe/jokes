@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Joke Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .joke-box {
+            background-color: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .setup {
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .delivery {
+            color: #5a67d8;
+        }
+
+        button {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .error {
+            color: #e53e3e;
+            font-style: italic;
+        }
+
+        .category-filters {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .category-btn {
+            background-color: #edf2f7;
+            color: #4a5568;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .category-btn.active {
+            background-color: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>😄 Random Joke Generator</h1>
+        <div class="category-filters">
+            <button class="category-btn active" data-category="Any">Random</button>
+            <button class="category-btn" data-category="Programming">Programming</button>
+            <button class="category-btn" data-category="General">General</button>
+        </div>
+        <div class="joke-box" id="jokeText">Click the button to get a joke!</div>
+        <button onclick="getJoke()">Get New Joke</button>
+    </div>
+
+    <script>
+        const jokeText = document.getElementById('jokeText');
+        const categoryButtons = document.querySelectorAll('.category-btn');
+        let selectedCategory = 'Any';
+
+        // Add click event listeners to category buttons
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                categoryButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                selectedCategory = button.dataset.category;
+                getJoke();
+            });
+        });
+
+        function setLoading() {
+            jokeText.innerHTML = "Loading...";
+            jokeText.classList.add('loading');
+            jokeText.classList.remove('error');
+        }
+
+        function setError(message) {
+            jokeText.innerHTML = message;
+            jokeText.classList.add('error');
+            jokeText.classList.remove('loading');
+        }
+
+        async function getJoke() {
+            setLoading();
+            
+            try {
+                // Using the Official Joke API instead
+                let apiUrl = 'https://official-joke-api.appspot.com/random_joke';
+                
+                if (selectedCategory === 'Programming') {
+                    apiUrl = 'https://official-joke-api.appspot.com/jokes/programming/random';
+                }
+
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) throw new Error('Failed to fetch joke');
+                
+                const data = await response.json();
+                const joke = Array.isArray(data) ? data[0] : data; // API sometimes returns array
+
+                jokeText.classList.remove('loading', 'error');
+                
+                jokeText.innerHTML = `
+                    <div class="setup">${joke.setup}</div>
+                    <div class="delivery">${joke.punchline}</div>
+                `;
+                
+            } catch (error) {
+                // Fallback to local jokes if API fails
+                const fallbackJokes = [
+                    {
+                        setup: "Why do programmers prefer dark mode?",
+                        punchline: "Because light attracts bugs!"
+                    },
+                    {
+                        setup: "What's a programmer's favorite place in the house?",
+                        punchline: "The living ROOM!"
+                    },
+                    {
+                        setup: "Why was six afraid of seven?",
+                        punchline: "Because seven eight nine!"
+                    },
+                    {
+                        setup: "What did the Java Code say to the C code?",
+                        punchline: "You've got no class!"
+                    }
+                ];
+                
+                const randomJoke = fallbackJokes[Math.floor(Math.random() * fallbackJokes.length)];
+                jokeText.classList.remove('loading', 'error');
+                jokeText.innerHTML = `
+                    <div class="setup">${randomJoke.setup}</div>
+                    <div class="delivery">${randomJoke.punchline}</div>
+                `;
+            }
+        }
+
+        // Get initial joke
+        getJoke();
+    </script>
+</body>
+</html>
